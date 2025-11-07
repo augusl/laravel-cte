@@ -95,7 +95,7 @@ trait BuildsExpressionQueries
         $driver = $connection->getDriverName();
 
         return match ($driver) {
-            'mysql' => new MySqlGrammar($connection),
+            'mysql','tidb' => new MySqlGrammar($connection),
             'mariadb' => new MariaDbGrammar($connection),
             'pgsql' => new PostgresGrammar($connection),
             'sqlite' => new SQLiteGrammar($connection),

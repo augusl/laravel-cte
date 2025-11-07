@@ -38,7 +38,7 @@ class ConnectionFactory extends Base
         }
 
         return match ($driver) {
-            'mysql' => new MySqlConnection($connection, $database, $prefix, $config),
+            'mysql','tidb' => new MySqlConnection($connection, $database, $prefix, $config),
             'mariadb' => new MariaDbConnection($connection, $database, $prefix, $config),
             'pgsql' => new PostgresConnection($connection, $database, $prefix, $config),
             'sqlite' => new SQLiteConnection($connection, $database, $prefix, $config),
