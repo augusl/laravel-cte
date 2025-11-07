@@ -2,10 +2,10 @@
 
 namespace Staudenmeir\LaravelCte\Connections;
 
-use SingleStore\Laravel\Connect\SingleStoreConnection as Base;
+use SingleStore\Laravel\Connect\Connection;
 use Staudenmeir\LaravelCte\Query\SingleStoreBuilder;
 
-class SingleStoreConnection extends Base
+class SingleStoreConnection extends Connection
 {
     /** @inheritDoc */
     public function query()

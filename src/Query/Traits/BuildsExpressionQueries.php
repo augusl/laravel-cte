@@ -18,22 +18,9 @@ use Staudenmeir\LaravelCte\Query\Grammars\SqlServerGrammar;
 trait BuildsExpressionQueries
 {
     /**
-     * The Laravel native query grammars.
-     *
-     * @var list<class-string<\Illuminate\Database\Query\Grammars\Grammar>>
-     */
-    public const NATIVE_GRAMMARS = [
-        \Illuminate\Database\Query\Grammars\MySqlGrammar::class,
-        \Illuminate\Database\Query\Grammars\MariaDbGrammar::class,
-        \Illuminate\Database\Query\Grammars\PostgresGrammar::class,
-        \Illuminate\Database\Query\Grammars\SQLiteGrammar::class,
-        \Illuminate\Database\Query\Grammars\SqlServerGrammar::class,
-    ];
-
-    /**
      * The common table expressions.
      *
-     * @var list<array{name: string, query: string, columns: list<string|\Illuminate\Database\Query\Expression<*>>|null,
+     * @var list<array{name: string, query: string, columns: list<string|\Illuminate\Database\Query\Expression>|null,
      *       recursive: bool, materialized: bool|null,
      *       cycle: array{columns: list<string>, markColumn: string, pathColumn: string}|null}>
      */
@@ -42,7 +29,7 @@ trait BuildsExpressionQueries
     /**
      * The common table expressions for union queries.
      *
-     * @var list<array{name: string, query: string, columns: list<string|\Illuminate\Database\Query\Expression<*>>|null,
+     * @var list<array{name: string, query: string, columns: list<string|\Illuminate\Database\Query\Expression>|null,
      *        recursive: bool, materialized: bool|null,
      *        cycle: array{columns: list<string>, markColumn: string, pathColumn: string}|null}>
      */
@@ -72,11 +59,7 @@ trait BuildsExpressionQueries
      */
     public function __construct(Connection $connection, ?Grammar $grammar = null, ?Processor $processor = null)
     {
-        // Override the provided grammar if it is null or a native grammar
-        if (is_null($grammar) || in_array($grammar::class, self::NATIVE_GRAMMARS)) {
-            $grammar = $this->getQueryGrammar($connection);
-        }
-
+        $grammar = $grammar ?: $connection->withTablePrefix($this->getQueryGrammar($connection));
         $processor = $processor ?: $connection->getPostProcessor();
 
         parent::__construct($connection, $grammar, $processor);
@@ -94,21 +77,19 @@ trait BuildsExpressionQueries
     {
         $driver = $connection->getDriverName();
 
-        return match ($driver) {
-            'mysql','tidb' => new MySqlGrammar($connection),
-            'mariadb' => new MariaDbGrammar($connection),
-            'pgsql' => new PostgresGrammar($connection),
-            'sqlite' => new SQLiteGrammar($connection),
-            'sqlsrv' => new SqlServerGrammar($connection),
-            'oracle' => new OracleGrammar($connection),
-            'singlestore' => new SingleStoreGrammar(
-                connection: $connection,
-                ignoreOrderByInDeletes: $connection->getConfig('ignore_order_by_in_deletes'),
-                ignoreOrderByInUpdates: $connection->getConfig('ignore_order_by_in_updates')
-            ),
-            'firebird' => new FirebirdGrammar($connection),
+        $grammar = match ($driver) {
+            'mysql','tidb' => new MySqlGrammar(),
+            'mariadb' => new MariaDbGrammar(),
+            'pgsql' => new PostgresGrammar(),
+            'sqlite' => new SQLiteGrammar(),
+            'sqlsrv' => new SqlServerGrammar(),
+            'oracle' => new OracleGrammar(),
+            'singlestore' => new SingleStoreGrammar(),
+            'firebird' => new FirebirdGrammar(),
             default => throw new RuntimeException('This database is not supported.'), // @codeCoverageIgnore
         };
+
+        return $grammar->setConnection($connection);
     }
 
     /**
@@ -116,7 +97,7 @@ trait BuildsExpressionQueries
      *
      * @param string $name
      * @param string|\Closure|\Illuminate\Database\Query\Builder $query
-     * @param list<string|\Illuminate\Database\Query\Expression<*>>|null $columns
+     * @param list<string|\Illuminate\Database\Query\Expression>|null $columns
      * @param bool $recursive
      * @param bool|null $materialized
      * @param array{columns: list<string>, markColumn: string, pathColumn: string}|null $cycle
@@ -145,7 +126,7 @@ trait BuildsExpressionQueries
      *
      * @param string $name
      * @param string|\Closure|\Illuminate\Database\Query\Builder $query
-     * @param list<string|\Illuminate\Database\Query\Expression<*>>|null $columns
+     * @param list<string|\Illuminate\Database\Query\Expression>|null $columns
      * @param array{columns: list<string>, markColumn: string, pathColumn: string}|null $cycle
      * @return $this
      */
@@ -162,7 +143,7 @@ trait BuildsExpressionQueries
      * @param list<string>|string $cycleColumns
      * @param string $markColumn
      * @param string $pathColumn
-     * @param list<string|\Illuminate\Database\Query\Expression<*>>|null $columns
+     * @param list<string|\Illuminate\Database\Query\Expression>|null $columns
      * @return $this
      */
     public function withRecursiveExpressionAndCycleDetection($name, $query, $cycleColumns, $markColumn = 'is_cycle', $pathColumn = 'path', $columns = null)
@@ -181,7 +162,7 @@ trait BuildsExpressionQueries
      *
      * @param string $name
      * @param string|\Closure|\Illuminate\Database\Query\Builder $query
-     * @param list<string|\Illuminate\Database\Query\Expression<*>>|null $columns
+     * @param list<string|\Illuminate\Database\Query\Expression>|null $columns
      * @return $this
      */
     public function withMaterializedExpression($name, $query, $columns = null)
@@ -194,7 +175,7 @@ trait BuildsExpressionQueries
      *
      * @param string $name
      * @param string|\Closure|\Illuminate\Database\Query\Builder $query
-     * @param list<string|\Illuminate\Database\Query\Expression<*>>|null $columns
+     * @param list<string|\Illuminate\Database\Query\Expression>|null $columns
      * @return $this
      */
     public function withNonMaterializedExpression($name, $query, $columns = null)
@@ -218,7 +199,7 @@ trait BuildsExpressionQueries
     /**
      * Insert new records into the table using a subquery.
      *
-     * @param list<string|\Illuminate\Database\Query\Expression<*>> $columns
+     * @param list<string|\Illuminate\Database\Query\Expression> $columns
      * @param string|\Closure|\Illuminate\Database\Eloquent\Builder<*>|\Illuminate\Database\Query\Builder $query
      * @return int
      */

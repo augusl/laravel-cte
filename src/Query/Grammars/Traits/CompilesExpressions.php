@@ -2,7 +2,6 @@
 
 namespace Staudenmeir\LaravelCte\Query\Grammars\Traits;
 
-use Illuminate\Database\Connection;
 use Illuminate\Database\Query\Builder;
 use Illuminate\Support\Str;
 use Staudenmeir\LaravelCte\Query\Builder as CteBuilder;
@@ -13,13 +12,9 @@ trait CompilesExpressions
 {
     /**
      * Create a new grammar instance.
-     *
-     * @param \Illuminate\Database\Connection $connection
      */
-    public function __construct(Connection $connection)
+    public function __construct()
     {
-        parent::__construct($connection);
-
         array_unshift($this->selectComponents, 'expressions');
 
         $this->selectComponents[] = 'recursionLimit';
@@ -29,7 +24,7 @@ trait CompilesExpressions
      * Compile the common table expressions.
      *
      * @param \Illuminate\Database\Query\Builder $query
-     * @param list<array{name: string, query: string, columns: list<string|\Illuminate\Database\Query\Expression<*>>|null,
+     * @param list<array{name: string, query: string, columns: list<string|\Illuminate\Database\Query\Expression>|null,
      *        recursive: bool, materialized: bool|null,
      *        cycle: array{columns: list<string>, markColumn: string, pathColumn: string}|null}> $expressions
      * @return string
@@ -62,7 +57,7 @@ trait CompilesExpressions
     /**
      * Get the "recursive" keyword.
      *
-     * @param list<array{name: string, query: string, columns: list<string|\Illuminate\Database\Query\Expression<*>>|null,
+     * @param list<array{name: string, query: string, columns: list<string|\Illuminate\Database\Query\Expression>|null,
      *        recursive: bool, materialized: bool|null,
      *        cycle: array{columns: list<string>, markColumn: string, pathColumn: string}|null}> $expressions
      * @return string
@@ -92,7 +87,7 @@ trait CompilesExpressions
      * Compile the cycle detection.
      *
      * @param \Illuminate\Database\Query\Builder $query
-     * @param array{name: string, query: string, columns: list<string|\Illuminate\Database\Query\Expression<*>>|null,
+     * @param array{name: string, query: string, columns: list<string|\Illuminate\Database\Query\Expression>|null,
      *        recursive: bool, materialized: bool|null,
      *        cycle: array{columns: list<string>, markColumn: string, pathColumn: string}|null} $expression
      * @return string
@@ -137,7 +132,7 @@ trait CompilesExpressions
      * Compile an insert statement using a subquery into SQL.
      *
      * @param \Illuminate\Database\Query\Builder $query
-     * @param list<string|\Illuminate\Database\Query\Expression<*>> $columns
+     * @param list<string|\Illuminate\Database\Query\Expression> $columns
      * @param string $sql
      * @return string
      */

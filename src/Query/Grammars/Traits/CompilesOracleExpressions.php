@@ -6,14 +6,12 @@ use Illuminate\Database\Query\Builder;
 
 trait CompilesOracleExpressions
 {
-    use CompilesExpressions {
-        compileSelect as compileSelectTrait;
-    }
+    use CompilesExpressions;
 
     /**
      * Get the "recursive" keyword.
      *
-     * @param list<array{name: string, query: string, columns: list<string|\Illuminate\Database\Query\Expression<*>>|null,
+     * @param list<array{name: string, query: string, columns: list<string|\Illuminate\Database\Query\Expression>|null,
      *        recursive: bool, materialized: bool|null,
      *        cycle: array{columns: list<string>, markColumn: string, pathColumn: string}|null}> $expressions
      * @return string
@@ -23,17 +21,11 @@ trait CompilesOracleExpressions
         return '';
     }
 
-    /** @inheritDoc */
-    public function compileSelect(Builder $query): string
-    {
-        return $this->compileSelectTrait($query);
-    }
-
     /**
      * Compile an insert statement using a subquery into SQL.
      *
      * @param \Illuminate\Database\Query\Builder $query
-     * @param list<string|\Illuminate\Database\Query\Expression<*>> $columns
+     * @param list<string|\Illuminate\Database\Query\Expression> $columns
      * @param string $sql
      * @return string
      */
